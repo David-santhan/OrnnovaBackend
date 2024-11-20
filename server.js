@@ -470,39 +470,39 @@ app.post("/sendpasswordlink",async (req,res)=>{
 //     }
 // })
 
+// Route: Reset Password Page
 app.get("/ResetPasswordpage/:id/:token", async (req, res) => {
-    const { id, token } = req.params;
-    console.log("Incoming Request:", { id, token }); // Debugging log
+  const { id, token } = req.params;
 
-    try {
-        // Check if the user exists
-        const validuser = await NewUser.findOne({ _id: id, verifytoken: token });
-        if (!validuser) {
-            return res.status(404).json({ status: 404, message: "User Not Found" });
-        }
+  try {
+    console.log("Incoming request with params:", { id, token });
 
-        // Verify the token
-        let verifyToken;
-        try {
-            verifyToken = jwt.verify(token, secretKey);
-        } catch (err) {
-            return res.status(401).json({ status: 401, message: "Invalid or Expired Token" });
-        }
+    // Verify token
+    const verifyToken = jwt.verify(token, secretKey);
+    console.log("Decoded Token:", verifyToken);
 
-        // Check if the token belongs to the user
-        if (verifyToken._id !== id) {
-            return res.status(401).json({ status: 401, message: "Token Mismatch" });
-        }
+    // Check if the user exists and token matches
+    const validUser = await NewUser.findOne({ _id: id, verifytoken: token });
 
-        // Success response
-        console.log("User Verified:", validuser);
-        res.status(200).json({ status: 200, validuser });
-
-    } catch (error) {
-        console.error("Error in ResetPasswordpage route:", error);
-        res.status(500).json({ status: 500, message: "Server Error", error });
+    if (validUser && verifyToken._id) {
+      console.log("Valid user found:", validUser);
+      res.status(201).json({ status: 201, message: "User Valid", validUser });
+    } else {
+      console.error("Invalid user or token mismatch");
+      res.status(401).json({ status: 401, message: "User Not Exist" });
     }
+  } catch (error) {
+    console.error("Error in verification:", error.message);
+
+    // Specific error for token expiration
+    if (error.name === "TokenExpiredError") {
+      res.status(401).json({ status: 401, message: "Token Expired" });
+    } else {
+      res.status(401).json({ status: 401, message: "Invalid Request", error: error.message });
+    }
+  }
 });
+
 
 //  Change Password
 app.post("/:id/:token",async(req,res)=>{
