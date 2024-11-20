@@ -475,7 +475,6 @@ app.get("/ResetPasswordpage/:id/:token", async (req, res) => {
     try {
         const validuser = await NewUser.findOne({ _id: id, verifytoken: token });
         const verifyToken = jwt.verify(token, secretKey);
-        console.log("Verified Token:", verifyToken);
 
         if (validuser && verifyToken._id) {
             res.status(201).json({ status: 201, validuser });
@@ -483,10 +482,10 @@ app.get("/ResetPasswordpage/:id/:token", async (req, res) => {
             res.status(401).json({ status: 401, message: "User Not Exist" });
         }
     } catch (error) {
-        console.error("Error:", error);
         res.status(401).json({ status: 401, error });
     }
 });
+
 
 
 //  Change Password
