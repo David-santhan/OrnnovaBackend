@@ -110,7 +110,7 @@ app.listen(process.env.PORT,()=>{
 let ConnectedtoMDB= async()=>{
     try{
         await mongoose.connect("mongodb+srv://OrnnovaHRMangement:OrnnovaHRMangement@ornnovahrmanagment.qu6ub6f.mongodb.net/HRManagment?retryWrites=true&w=majority&appName=OrnnovaHRManagment");
-        console.log("Succesfuly Connected to MDB ✅");
+        console.log("Succesfully Connected to MDB ✅");
     }catch{
         console.log("Failed to Connect to MDB ❌");
     }
