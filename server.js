@@ -441,7 +441,7 @@ app.post("/sendpasswordlink", async (req, res) => {
                 from: process.env.EMAIL,
                 to: email,
                 subject: "Password Reset Link",
-                text: `This link is valid for 5 minutes: https://ornnova.com/HR/ResetPassword/${userfind._id}/${setusertoken.verifytoken}`
+                text: `This link is valid for 5 minutes : https://ornnova.com/HR/ResetPassword/${userfind._id}/${setusertoken.verifytoken}`
             };
 
             transporter.sendMail(mailOptions, (error, info) => {
