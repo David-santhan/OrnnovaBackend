@@ -410,46 +410,58 @@ app.post("/login", upload.none(), async (req, res) => {
 
 const secretKey = process.env.SECRET_KEY;
 
-app.post("/sendpasswordlink",async (req,res)=>{
+app.post("/sendpasswordlink", async (req, res) => {
     console.log(req.body);
-    const {email} = req.body;
+    const { email } = req.body;
 
     if (!email) {
-        res.status(401).json({status:401,message:"Enter Your Email"})
+        return res.status(401).json({ status: 401, message: "Enter Your Email" });
     }
-    try {
-        const userfind = await NewUser.findOne({Email:email});
-        
-        // token generate for reset password
 
-        const token = jwt.sign({_id:userfind._id},secretKey,{expiresIn:"300s"});
-        
-        const setusertoken = await NewUser.findByIdAndUpdate({_id:userfind._id},{verifytoken:token},{new:true});
-         
+    try {
+        // Find user by email
+        const userfind = await NewUser.findOne({ Email: email });
+
+        if (!userfind) {
+            return res.status(401).json({ status: 401, message: "User not found with this email" });
+        }
+
+        // Generate a token for password reset
+        const token = jwt.sign({ _id: userfind._id }, secretKey, { expiresIn: "300s" });
+
+        // Update user with the generated token
+        const setusertoken = await NewUser.findByIdAndUpdate(
+            { _id: userfind._id },
+            { verifytoken: token },
+            { new: true }
+        );
+
         if (setusertoken) {
             const mailOptions = {
-                from:process.env.EMAIL,
-                to:email,
-                subject:"Password Reset Link",
-                text:`This link is valid for 5minutes https://ornnovabackend.onrender.com/ResetPassword/${userfind.id}/${setusertoken.verifytoken}`
-            }
+                from: process.env.EMAIL,
+                to: email,
+                subject: "Password Reset Link",
+                text: `This link is valid for 5 minutes: https://ornnovabackend.onrender.com/ResetPassword/${userfind._id}/${setusertoken.verifytoken}`
+            };
 
-            transporter.sendMail(mailOptions,(error,info)=>{
-                if(error){
-                    console.log("Error",error);
-                    res.status(401).json({status:401,message:"Email Not Send"})
-                }else{
-                    console.log("Email Sent",info.response);
-                    res.status(201).json({status:201,message:"Email Sent Successfully"})
+            transporter.sendMail(mailOptions, (error, info) => {
+                if (error) {
+                    console.log("Error", error);
+                    return res.status(401).json({ status: 401, message: "Email Not Sent" });
+                } else {
+                    console.log("Email Sent", info.response);
+                    return res.status(201).json({ status: 201, message: "Email Sent Successfully" });
                 }
-            })
+            });
+        } else {
+            return res.status(500).json({ status: 500, message: "Error updating token" });
         }
-        
     } catch (error) {
-        res.status(401).json({status:401,message:"Invalid User"})
-
+        console.error(error);
+        return res.status(500).json({ status: 500, message: "Internal Server Error" });
     }
-})
+});
+
 //  verify user for forgot password
 
 // app.get("/ResetPasswordpage/:id/:token",async(req,res)=>{
