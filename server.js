@@ -452,23 +452,58 @@ app.post("/sendpasswordlink",async (req,res)=>{
 })
 //  verify user for forgot password
 
-app.get("/ResetPasswordpage/:id/:token",async(req,res)=>{
-    const {id,token} = req.params;
+// app.get("/ResetPasswordpage/:id/:token",async(req,res)=>{
+//     const {id,token} = req.params;
+//     try {
+//         const validuser = await NewUser.findOne({_id:id,verifytoken:token});
+//         const verifyToken = jwt.verify(token,secretKey);
+//         console.log(verifyToken)
+//         if (validuser && verifyToken._id){
+//              res.status(201).json({status:201,validuser})
+//         }else{
+//             res.status(401).json({status:401,message:"User Not Exist"})
+
+//         }
+//     } catch (error) {
+//         res.status(401).json({status:401,error })
+
+//     }
+// })
+
+app.get("/ResetPasswordpage/:id/:token", async (req, res) => {
+    const { id, token } = req.params;
+    console.log("Incoming Request:", { id, token }); // Debugging log
+
     try {
-        const validuser = await NewUser.findOne({_id:id,verifytoken:token});
-        const verifyToken = jwt.verify(token,secretKey);
-        console.log(verifyToken)
-        if (validuser && verifyToken._id){
-             res.status(201).json({status:201,validuser})
-        }else{
-            res.status(401).json({status:401,message:"User Not Exist"})
-
+        // Check if the user exists
+        const validuser = await NewUser.findOne({ _id: id, verifytoken: token });
+        if (!validuser) {
+            return res.status(404).json({ status: 404, message: "User Not Found" });
         }
-    } catch (error) {
-        res.status(401).json({status:401,error })
 
+        // Verify the token
+        let verifyToken;
+        try {
+            verifyToken = jwt.verify(token, secretKey);
+        } catch (err) {
+            return res.status(401).json({ status: 401, message: "Invalid or Expired Token" });
+        }
+
+        // Check if the token belongs to the user
+        if (verifyToken._id !== id) {
+            return res.status(401).json({ status: 401, message: "Token Mismatch" });
+        }
+
+        // Success response
+        console.log("User Verified:", validuser);
+        res.status(200).json({ status: 200, validuser });
+
+    } catch (error) {
+        console.error("Error in ResetPasswordpage route:", error);
+        res.status(500).json({ status: 500, message: "Server Error", error });
     }
-})
+});
+
 //  Change Password
 app.post("/:id/:token",async(req,res)=>{
     const {id,token} = req.params;
