@@ -523,34 +523,28 @@ app.get("/ResetPasswordpage/:id/:token", async (req, res) => {
 //     }
 // })
 
-app.post("Changepassword/:id/:token", async (req, res) => {
+app.post("/Changepassword/:id/:token", async (req, res) => {
     const { id, token } = req.params;
     const { password } = req.body;
 
     try {
-        // Check if the user exists and the token matches
-        const validUser = await NewUser.findOne({ _id: id, verifytoken: token });
-        if (!validUser) {
-            return res.status(401).json({ status: 401, message: "Invalid User or Token" });
-        }
-
-        // Verify the token
+        const validuser = await NewUser.findOne({ _id: id, verifytoken: token });
         const verifyToken = jwt.verify(token, secretKey);
-        if (!verifyToken._id) {
-            return res.status(401).json({ status: 401, message: "Invalid Token" });
+
+        if (validuser && verifyToken._id) {
+            const newpassword = password; // Make sure you're handling the password correctly
+            const setnewuserpass = await NewUser.findByIdAndUpdate({ _id: id }, { Password: newpassword });
+
+            // Save the updated password
+            await setnewuserpass.save();
+
+            // Return a successful response
+            res.status(201).json({ status: 201, message: "Password updated successfully" });
+        } else {
+            res.status(401).json({ status: 401, message: "User not found or token is invalid" });
         }
-
-        // Directly update the password (no hashing)
-        await NewUser.findByIdAndUpdate(
-            { _id: id },
-            { Password: password } // Store the plain password directly
-        );
-
-        res.status(201).json({ status: 201, message: "Password updated successfully" });
-
     } catch (error) {
-        console.error("Error in resetting password:", error);
-        res.status(500).json({ status: 500, message: "Internal Server Error", error });
+        res.status(500).json({ status: 500, message: "Server error", error });
     }
 });
 
