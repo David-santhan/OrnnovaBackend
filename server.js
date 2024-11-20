@@ -489,27 +489,58 @@ app.get("/ResetPasswordpage/:id/:token", async (req, res) => {
 
 
 //  Change Password
-app.post("/:id/:token",async(req,res)=>{
-    const {id,token} = req.params;
-    const{password} = req.body;
-    try{
-        const validuser = await NewUser.findOne({_id:id,verifytoken:token});
-        const verifyToken = jwt.verify(token,secretKey);
+// app.post("/:id/:token",async(req,res)=>{
+//     const {id,token} = req.params;
+//     const{password} = req.body;
+//     try{
+//         const validuser = await NewUser.findOne({_id:id,verifytoken:token});
+//         const verifyToken = jwt.verify(token,secretKey);
 
-        if (validuser && verifyToken._id) {
-            // const newpassword = await bcrypt.hash(password,12);
-            const newpassword = await (password);
-            const setnewuserpass = await NewUser.findByIdAndUpdate({_id:id},{Password:newpassword})
-         setnewuserpass.save();
-         res.status(201).json({status:201,setnewuserpass})
-        }else{
-            res.status(401).json({status:401,message:"User Not Exist"})
+//         if (validuser && verifyToken._id) {
+//             // const newpassword = await bcrypt.hash(password,12);
+//             const newpassword = await (password);
+//             const setnewuserpass = await NewUser.findByIdAndUpdate({_id:id},{Password:newpassword})
+//          setnewuserpass.save();
+//          res.status(201).json({status:201,setnewuserpass})
+//         }else{
+//             res.status(401).json({status:401,message:"User Not Exist"})
 
+//         }
+//     }catch(error){
+//         res.status(401).json({status:401,error })
+//     }
+// })
+
+app.post("/:id/:token", async (req, res) => {
+    const { id, token } = req.params;
+    const { password } = req.body;
+
+    try {
+        // Check if the user exists and the token matches
+        const validUser = await NewUser.findOne({ _id: id, verifytoken: token });
+        if (!validUser) {
+            return res.status(401).json({ status: 401, message: "Invalid User or Token" });
         }
-    }catch(error){
-        res.status(401).json({status:401,error })
+
+        // Verify the token
+        const verifyToken = jwt.verify(token, secretKey);
+        if (!verifyToken._id) {
+            return res.status(401).json({ status: 401, message: "Invalid Token" });
+        }
+
+        // Directly update the password (no hashing)
+        await NewUser.findByIdAndUpdate(
+            { _id: id },
+            { Password: password } // Store the plain password directly
+        );
+
+        res.status(201).json({ status: 201, message: "Password updated successfully" });
+
+    } catch (error) {
+        console.error("Error in resetting password:", error);
+        res.status(500).json({ status: 500, message: "Internal Server Error", error });
     }
-})
+});
 
 app.delete("/deleteUser/:id",async(req,res)=>{
     console.log(req.params.id);
