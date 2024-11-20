@@ -470,37 +470,22 @@ app.post("/sendpasswordlink",async (req,res)=>{
 //     }
 // })
 
-// Route: Reset Password Page
 app.get("/ResetPasswordpage/:id/:token", async (req, res) => {
-  const { id, token } = req.params;
+    const { id, token } = req.params;
+    try {
+        const validuser = await NewUser.findOne({ _id: id, verifytoken: token });
+        const verifyToken = jwt.verify(token, secretKey);
+        console.log("Verified Token:", verifyToken);
 
-  try {
-    console.log("Incoming request with params:", { id, token });
-
-    // Verify token
-    const verifyToken = jwt.verify(token, secretKey);
-    console.log("Decoded Token:", verifyToken);
-
-    // Check if the user exists and token matches
-    const validUser = await NewUser.findOne({ _id: id, verifytoken: token });
-
-    if (validUser && verifyToken._id) {
-      console.log("Valid user found:", validUser);
-      res.status(201).json({ status: 201, message: "User Valid", validUser });
-    } else {
-      console.error("Invalid user or token mismatch");
-      res.status(401).json({ status: 401, message: "User Not Exist" });
+        if (validuser && verifyToken._id) {
+            res.status(201).json({ status: 201, validuser });
+        } else {
+            res.status(401).json({ status: 401, message: "User Not Exist" });
+        }
+    } catch (error) {
+        console.error("Error:", error);
+        res.status(401).json({ status: 401, error });
     }
-  } catch (error) {
-    console.error("Error in verification:", error.message);
-
-    // Specific error for token expiration
-    if (error.name === "TokenExpiredError") {
-      res.status(401).json({ status: 401, message: "Token Expired" });
-    } else {
-      res.status(401).json({ status: 401, message: "Invalid Request", error: error.message });
-    }
-  }
 });
 
 
