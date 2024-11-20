@@ -511,7 +511,7 @@ app.get("/ResetPasswordpage/:id/:token", async (req, res) => {
 //     }
 // })
 
-app.post("/:id/:token", async (req, res) => {
+app.post("Changepassword/:id/:token", async (req, res) => {
     const { id, token } = req.params;
     const { password } = req.body;
 
