@@ -1304,7 +1304,7 @@ const CandidateSchema = new mongoose.Schema({
         required: true
     },
     lwd: {
-        type: Date
+        type: String
     },
     currentLocation: {
         type: String,
@@ -1355,7 +1355,7 @@ const CandidateSchema = new mongoose.Schema({
         type: String
     },
     interviewDate: {
-        type: Date
+        type: String
     },
     educationalQualification: {
         type: String,
